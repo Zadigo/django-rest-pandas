@@ -33,7 +33,7 @@ export function useAnalystConfig(props) {
 
     const analyst = { ...routeProps, ...props };
 
-    if (!analyst.url) {
+    if (!analyst.url && !analyst.data) {
         if (routeProps) {
             return {
                 error: `The config for "${name}" should include an analyst.url property.`,

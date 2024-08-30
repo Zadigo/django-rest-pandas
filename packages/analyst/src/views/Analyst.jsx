@@ -4,7 +4,7 @@ import { Series, Scatter, Boxplot } from "@wq/chart";
 import { useAnalyst } from "../hooks.js";
 import PropTypes from "prop-types";
 
-export default function Analyst({ children, ...props }) {
+export default function Analyst({ children, compact, ...props }) {
     const { View, Typography, AnalystDownload, AnalystTable, AnalystForm } =
             useComponents(),
         {
@@ -86,6 +86,7 @@ export default function Analyst({ children, ...props }) {
                         initial_order={initial_order}
                         id_column={id_column}
                         id_url_prefix={id_url_prefix}
+                        compact={compact}
                     />
                 ))}
         </View>
@@ -94,4 +95,5 @@ export default function Analyst({ children, ...props }) {
 
 Analyst.propTypes = {
     children: PropTypes.node,
+    compact: PropTypes.bool,
 };
