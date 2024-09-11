@@ -10,6 +10,7 @@ export default function Analyst({ children, compact, ...props }) {
         {
             url,
             data,
+            download_url,
             fields,
             error,
             title,
@@ -42,8 +43,12 @@ export default function Analyst({ children, compact, ...props }) {
                 overflow: "hidden",
             }}
         >
-            {formats && (
-                <AnalystDownload url={url} title={title} formats={formats} />
+            {formats && download_url && (
+                <AnalystDownload
+                    url={download_url}
+                    title={title}
+                    formats={formats}
+                />
             )}
             {!formats && title && <Typography variant="h5">{title}</Typography>}
             {children}

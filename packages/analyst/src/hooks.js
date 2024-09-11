@@ -52,6 +52,7 @@ export function useAnalystConfig(props) {
                 ? context[analyst.initial_order]
                 : analyst.initial_order,
         url: render(analyst.url, context),
+        download_url: render(analyst.download_url || analyst.url, context),
         title: render(analyst.title, context),
         id_url_prefix: render(analyst.id_url_prefix, context),
     };
