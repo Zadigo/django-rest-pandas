@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import config from "./config.js";
-import createPlotlyComponent from "react-plotly.js/factory";
+import factory from "react-plotly.js/factory";
+
+const createPlotlyComponent = factory.default ? factory.default : factory;
 
 const plotlyRef = {},
     defaultLayout = { autosize: true };

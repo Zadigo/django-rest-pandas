@@ -1,9 +1,23 @@
 import React, { useState } from "react";
 import { Menu, MenuItem, useMediaQuery } from "@mui/material";
-import { useComponents } from "@wq/react";
+import { Download } from "../icons";
+import { useComponents, withWQ, createFallbackComponents } from "@wq/react";
 import PropTypes from "prop-types";
 
-export default function AnalystDownload({ url, title, formats }) {
+const AnalystDownloadDefaults = {
+    icons: {
+        Download,
+    },
+};
+
+const AnalystDownloadFallback = {
+    components: createFallbackComponents(
+        ["Button", "IconButton", "HorizontalView", "Typography", "View"],
+        "@wq/material",
+    ),
+};
+
+function AnalystDownload({ url, title, formats }) {
     const [anchorEl, setAnchorEl] = useState(null),
         { Button, IconButton, HorizontalView, Typography, View } =
             useComponents(),
@@ -58,3 +72,8 @@ AnalystDownload.propTypes = {
     title: PropTypes.string,
     formats: PropTypes.object,
 };
+
+export default withWQ(AnalystDownload, {
+    defaults: AnalystDownloadDefaults,
+    fallback: AnalystDownloadFallback,
+});

@@ -1,10 +1,45 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { Badge, Menu, MenuItem } from "@mui/material";
 import { useAnalystData } from "../hooks.js";
-import { useComponents, useNav, useApp } from "@wq/react";
+import { SortDesc, SortAsc, SortNone, Filter, View } from "../icons.js";
+import { useComponents, withWQ, createFallbackComponents } from "@wq/react";
 import PropTypes from "prop-types";
 
-export default function AnalystTable({
+const AnalystTableDefaults = {
+    icons: {
+        SortDesc,
+        SortAsc,
+        SortNone,
+        Filter,
+        View,
+    },
+};
+
+const AnalystTableFallback = {
+    components: {
+        useNav() {
+            return null;
+        },
+        ...createFallbackComponents(
+            [
+                "Badge",
+                "Menu",
+                "MenuItem",
+                "Table",
+                "TableHead",
+                "TableBody",
+                "TableRow",
+                "TableTitle",
+                "TableCell",
+                "TableContainer",
+                "TablePagination",
+                "IconButton",
+            ],
+            "@wq/material",
+        ),
+    },
+};
+
+function AnalystTable({
     data: initialData,
     url,
     fields,
@@ -24,6 +59,8 @@ export default function AnalystTable({
         ),
         [page, setPage] = useState(0),
         {
+            useNav,
+            Badge,
             Typography,
             Table,
             TableHead,
@@ -35,18 +72,10 @@ export default function AnalystTable({
             TablePagination,
             IconButton,
         } = useComponents(),
-        app = useApp(),
         appNav = useNav(),
-        prefixIsAppUrl =
-            id_url_prefix &&
-            new URL(id_url_prefix, window.location.origin)
-                .toString()
-                .startsWith(
-                    new URL(app.base_url, window.location.origin).toString(),
-                ),
         nav = (id) => {
             const url = `${id_url_prefix}${id}`;
-            if (prefixIsAppUrl) {
+            if (appNav) {
                 appNav(url);
             } else {
                 window.location.href = url;
@@ -388,6 +417,19 @@ AnalystTable.propTypes = {
     id_url_prefix: PropTypes.string,
 };
 
+const AnalystTableWQ = withWQ(AnalystTable, {
+    defaults: AnalystTableDefaults,
+    fallback: AnalystTableFallback,
+});
+
+AnalystTableWQ.getAnalystMode = (data, columnTypes) => {
+    if (columnTypes.date || columnTypes.numeric || columnTypes.string) {
+        return { name: "table", label: "Table" };
+    }
+};
+
+export default AnalystTableWQ;
+
 function ColumnFilter({
     name,
     values,
@@ -397,7 +439,7 @@ function ColumnFilter({
     textButton,
 }) {
     const [anchorEl, setAnchorEl] = useState(null),
-        { IconButton, CheckboxButton } = useComponents(),
+        { Menu, MenuItem, IconButton, CheckboxButton } = useComponents(),
         menuId = `${name}-menu`;
     const Component = textButton ? TextButton : IconButton;
     return (

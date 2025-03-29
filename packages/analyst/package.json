@@ -8,12 +8,12 @@
     "files": [
         "src",
         "dist",
+        "Analyst.js",
         "index.js",
         "icons.js",
         "hooks.js",
         "version.js",
-        "components",
-        "views"
+        "components"
     ],
     "scripts": {
         "test": "cd ../../ && npm run jest packages/analyst",
@@ -42,14 +42,6 @@
     "dependencies": {
         "@wq/chart": "^2.0.0-alpha.0",
         "@wq/pandas": "^2.0.0-alpha.0",
-        "mustache": "^4.2.0"
-    },
-    "peerDependencies": {
-        "@wq/material": "*",
-        "@wq/material-web": "*"
-    },
-    "devDependencies": {
-        "@wq/material": "^2.1.0",
-        "@wq/material-web": "^2.1.0"
+        "@wq/react": "^3.0.0-a1-dev4.g2569553"
     }
 }

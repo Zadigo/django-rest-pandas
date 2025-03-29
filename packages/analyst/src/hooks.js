@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { useRouteInfo, useRenderContext } from "@wq/react";
+import { useComponents } from "@wq/react";
 import { get as getPandasCsv } from "@wq/pandas";
-import Mustache from "mustache";
 import { labelWithIcon } from "./components/Icon.jsx";
 
 export function useAnalyst(props) {
@@ -10,9 +9,13 @@ export function useAnalyst(props) {
             config.url || null,
             config.data || null,
             config.fields || null,
+            config.url_format || null,
         ),
         modes = useAnalystModes(data, config),
-        [form, options, setOptions] = useAnalystForm(modes);
+        [form, options, setOptions] = useAnalystForm(modes),
+        ActiveMode = modes.find(
+            (mode) => mode.name === (options.mode || "table"),
+        )?.component;
 
     return {
         ...config,
@@ -22,50 +25,52 @@ export function useAnalyst(props) {
         form: form.some((field) => field.type !== "hidden") ? form : null,
         options,
         setOptions,
+        ActiveMode,
     };
 }
 
 export function useAnalystConfig(props) {
     const {
-            page_config: { name, analyst: routeProps },
-        } = useRouteInfo(),
-        context = useRenderContext();
+        url,
+        data,
+        fields,
+        title,
+        formats,
+        initial_rows,
+        initialRows,
+        initial_order,
+        initialOrder,
+        id_column,
+        idColumn,
+        id_url_prefix,
+        idUrlPrefix,
+        modes,
+        url_format,
+        urlFormat,
+    } = props || {};
 
-    const analyst = { ...routeProps, ...props };
-
-    if (!analyst.url) {
-        if (routeProps) {
-            return {
-                error: `The config for "${name}" should include an analyst.url property.`,
-            };
-        } else {
-            return {
-                error: `Specify analyst.url in the config for "${name}" or as a prop.`,
-            };
-        }
+    if (!url && !data) {
+        return {
+            error: "Specify either url or data",
+        };
     }
 
     return {
-        ...analyst,
-        initial_order:
-            typeof analyst.initial_order === "string"
-                ? context[analyst.initial_order]
-                : analyst.initial_order,
-        url: render(analyst.url, context),
-        title: render(analyst.title, context),
-        id_url_prefix: render(analyst.id_url_prefix, context),
+        url,
+        data,
+        fields,
+        title,
+        formats,
+        initial_rows: initial_rows || initialRows,
+        initial_order: initial_order || initialOrder,
+        id_column: id_column || idColumn,
+        id_url_prefix: id_url_prefix || idUrlPrefix,
+        modes,
+        url_format: url_format || urlFormat,
     };
 }
 
-function render(value, context) {
-    if (value) {
-        return Mustache.render(value, context);
-    } else {
-        return value;
-    }
-}
-
-export function useAnalystData(url, initialData, fields) {
+export function useAnalystData(url, initialData, fields, urlFormat) {
     const [data, setData] = useState(initialData),
         [error, setError] = useState(null);
 
@@ -75,7 +80,13 @@ export function useAnalystData(url, initialData, fields) {
         }
         async function loadData() {
             try {
-                const data = await getPandasCsv(url, { flatten: true, fields });
+                let data;
+                if (urlFormat === "json" || url.endsWith("json")) {
+                    const response = await fetch(url);
+                    data = await response.json();
+                } else {
+                    data = await getPandasCsv(url, { flatten: true, fields });
+                }
                 if (data && data.length > 0) {
                     setData(data);
                 } else {
@@ -87,7 +98,7 @@ export function useAnalystData(url, initialData, fields) {
             }
         }
         loadData();
-    }, [url]);
+    }, [url, urlFormat]);
 
     useEffect(() => {
         setData(initialData);
@@ -97,36 +108,18 @@ export function useAnalystData(url, initialData, fields) {
 }
 
 export function useAnalystModes(data, config) {
+    const components = useComponents();
     return useMemo(() => {
         const modes = [],
             columnTypes = findColumns(data);
 
-        if (columnTypes.date || columnTypes.numeric || columnTypes.string) {
-            modes.push({ name: "table", label: "Table" });
-        }
-        if (columnTypes.date && columnTypes.numeric) {
-            modes.push({
-                name: "series",
-                label: "Series",
-                dateColumns: columnTypes.date,
-                valueColumns: columnTypes.numeric,
-            });
-        }
-        if (columnTypes.numeric && columnTypes.numeric.length > 1) {
-            modes.push({
-                name: "scatter",
-                label: "Scatter",
-                dateColumns: columnTypes.date,
-                valueColumns: columnTypes.numeric,
-            });
-        }
-        if (columnTypes.numeric) {
-            modes.push({
-                name: "boxplot",
-                label: "Box",
-                dateColumns: columnTypes.date,
-                valueColumns: columnTypes.numeric,
-            });
+        for (const component of Object.values(components)) {
+            if (component.getAnalystMode) {
+                const mode = component.getAnalystMode(data, columnTypes);
+                if (mode) {
+                    modes.push({ ...mode, component });
+                }
+            }
         }
         if (config && config.modes) {
             return config.modes
@@ -135,7 +128,7 @@ export function useAnalystModes(data, config) {
         } else {
             return modes;
         }
-    }, [data, config]);
+    }, [data, config, components]);
 }
 
 function findColumns(data) {
