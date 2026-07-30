@@ -1,6 +1,9 @@
 import unittest
+
 from rest_framework.test import APITestCase
+
 from tests.testapp.models import TimeSeries
+
 from .settings import HAS_MATPLOTLIB
 
 

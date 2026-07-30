@@ -1,10 +1,10 @@
-import unittest
-from rest_framework.test import APITestCase
-from tests.testapp.models import TimeSeries
-from tests.weather.models import Station
-from django.core.management import call_command
 import pathlib
 
+from django.core.management import call_command
+from rest_framework.test import APITestCase
+
+from tests.testapp.models import TimeSeries
+from tests.weather.models import Station
 
 DOCS = pathlib.Path("docs")
 

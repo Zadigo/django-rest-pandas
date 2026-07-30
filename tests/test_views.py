@@ -1,11 +1,14 @@
-import unittest
-from rest_framework.test import APITestCase
-from tests.testapp.models import TimeSeries, CustomIndexSeries
-from itertable import load_string
-import json
 import datetime
+import json
 import os
-from .settings import HAS_DJANGO_PANDAS, HAS_DJANGO_5
+import unittest
+
+from itertable import load_string
+from rest_framework.test import APITestCase
+
+from tests.testapp.models import CustomIndexSeries, TimeSeries
+
+from .settings import HAS_DJANGO_5, HAS_DJANGO_PANDAS
 
 
 class PandasTestCase(APITestCase):
@@ -42,7 +45,7 @@ class PandasTestCase(APITestCase):
         response = self.client.get("/timeserieslabels.csv")
         data = self.load_string(response)
         self.assertEqual(len(data), 5)
-        self.assertEqual(getattr(data[0], "measuredvalue"), "0.5")
+        self.assertEqual(data[0].measuredvalue, "0.5")
         self.assertEqual(
             list(data.field_map.keys()), ["id", "Event Date", "Measured Value"]
         )

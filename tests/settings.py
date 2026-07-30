@@ -56,6 +56,6 @@ else:
     HAS_DJANGO_PANDAS = True
 
 
-from django import VERSION  # noqa
+from django import VERSION
 
 HAS_DJANGO_5 = VERSION[0] == 5

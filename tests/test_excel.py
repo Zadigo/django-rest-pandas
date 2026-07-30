@@ -1,7 +1,9 @@
-from rest_framework.test import APITestCase
-from tests.testapp.models import TimeSeries
-from itertable import load_file
 import unittest
+
+from itertable import load_file
+from rest_framework.test import APITestCase
+
+from tests.testapp.models import TimeSeries
 
 try:
     import xlwt
