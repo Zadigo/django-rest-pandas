@@ -1,0 +1,27 @@
+| Name                          |    Stmts |     Miss |   Cover |
+|------------------------------ | -------: | -------: | ------: |
+| conftest.py                   |        6 |        0 |    100% |
+| src/\_\_init\_\_.py           |        4 |        0 |    100% |
+| src/renderers.py              |      134 |       68 |     49% |
+| src/serializers.py            |      251 |      191 |     24% |
+| src/settings.py               |        5 |        0 |    100% |
+| src/test.py                   |       61 |       58 |      5% |
+| src/typings.py                |        4 |        0 |    100% |
+| src/views.py                  |       73 |       42 |     42% |
+| tests/\_\_init\_\_.py         |        0 |        0 |    100% |
+| tests/generate\_docs.py       |       22 |       22 |      0% |
+| tests/settings.py             |       21 |        4 |     81% |
+| tests/test\_complex.py        |      176 |      162 |      8% |
+| tests/test\_excel.py          |       34 |       21 |     38% |
+| tests/test\_images.py         |       18 |        9 |     50% |
+| tests/test\_multi.py          |      105 |       88 |     16% |
+| tests/test\_views.py          |      126 |       94 |     25% |
+| tests/testapp/\_\_init\_\_.py |        0 |        0 |    100% |
+| tests/testapp/models.py       |       30 |        2 |     93% |
+| tests/testapp/renderers.py    |        6 |        6 |      0% |
+| tests/testapp/serializers.py  |       61 |        0 |    100% |
+| tests/testapp/urls.py         |        9 |        9 |      0% |
+| tests/testapp/views.py        |       85 |       85 |      0% |
+| tests/urls.py                 |        3 |        3 |      0% |
+| tests/weather/models.py       |       25 |        9 |     64% |
+| **TOTAL**                     | **1259** |  **873** | **31%** |

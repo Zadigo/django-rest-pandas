@@ -1,11 +1,8 @@
-import unittest
 
 from rest_framework.test import APITestCase
 
 from src.test import parse_csv
 from tests.testapp.models import ComplexTimeSeries
-
-from .settings import HAS_MATPLOTLIB
 
 
 class ComplexTestCase(APITestCase):
@@ -169,7 +166,6 @@ class ComplexTestCase(APITestCase):
             datasets,
         )
 
-    @unittest.skipUnless(HAS_MATPLOTLIB, "requires matplotlib")
     def test_complex_boxplot(self):
         # Default group=series-year
         response = self.client.get("/complexboxplot.csv")
@@ -222,7 +218,6 @@ class ComplexTestCase(APITestCase):
         self.assertEqual(stats["value-mean"], 0.4)
         self.assertEqual(stats["value-whishi"], 0.8)
 
-    @unittest.skipUnless(HAS_MATPLOTLIB, "requires matplotlib")
     def test_complex_boxplot_series(self):
         response = self.client.get("/complexboxplot.csv?group=series")
         datasets = self.parse_csv(response)
@@ -268,7 +263,6 @@ class ComplexTestCase(APITestCase):
         self.assertEqual(stats["value-mean"], 0.4)
         self.assertEqual(stats["value-whishi"], 0.8)
 
-    @unittest.skipUnless(HAS_MATPLOTLIB, "requires matplotlib")
     def test_complex_boxplot_month_group(self):
         response = self.client.get("/complexboxplot.csv?group=series-month")
         datasets = self.parse_csv(response)
@@ -314,7 +308,6 @@ class ComplexTestCase(APITestCase):
         self.assertEqual(stats["value-mean"], 0.4)
         self.assertEqual(stats["value-whishi"], 0.8)
 
-    @unittest.skipUnless(HAS_MATPLOTLIB, "requires matplotlib")
     def test_complex_boxplot_year(self):
         response = self.client.get("/complexboxplot.csv?group=year")
         datasets = self.parse_csv(response)
@@ -325,7 +318,6 @@ class ComplexTestCase(APITestCase):
         self.assertEqual(round(stats["value-mean"], 5), 0.56111)
         self.assertEqual(stats["value-whishi"], 1.5)
 
-    @unittest.skipUnless(HAS_MATPLOTLIB, "requires matplotlib")
     def test_complex_boxplot_extra(self):
         self.create_row(
             "site1", "flow", "cfs", "2015-01-01", "routine", 0.3, None

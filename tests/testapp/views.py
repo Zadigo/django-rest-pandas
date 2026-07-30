@@ -1,35 +1,37 @@
-from src import (
-    PandasMixin,
-    PandasSimpleView,
-    PandasView,
-    PandasViewSet,
-    PandasUnstackedSerializer,
-    PandasScatterSerializer,
-    PandasBoxplotSerializer,
-)
+import pandas as pd
 from rest_framework import renderers
 from rest_framework.generics import ListAPIView
+
+from src import (
+    PandasBoxplotSerializer,
+    PandasMixin,
+    PandasScatterSerializer,
+    PandasSimpleView,
+    PandasUnstackedSerializer,
+    PandasView,
+    PandasViewSet,
+)
 from src import renderers as pandas_renderers
+
 from .models import (
-    TimeSeries,
-    TimeSeriesLabels,
-    MultiTimeSeries,
     ComplexTimeSeries,
     CustomIndexSeries,
-)
-from .serializers import (
-    TimeSeriesSerializer,
-    TimeSeriesNoIdSerializer,
-    TimeSeriesLabelsSerializer,
-    MultiTimeSeriesSerializer,
-    ComplexTimeSeriesSerializer,
-    ComplexScatterSerializer,
-    ComplexBoxplotSerializer,
-    ComplexBoxplotExtraSerializer,
-    CustomIndexSeriesSerializer,
+    MultiTimeSeries,
+    TimeSeries,
+    TimeSeriesLabels,
 )
 from .renderers import CustomCSVRenderer
-import pandas as pd
+from .serializers import (
+    ComplexBoxplotExtraSerializer,
+    ComplexBoxplotSerializer,
+    ComplexScatterSerializer,
+    ComplexTimeSeriesSerializer,
+    CustomIndexSeriesSerializer,
+    MultiTimeSeriesSerializer,
+    TimeSeriesLabelsSerializer,
+    TimeSeriesNoIdSerializer,
+    TimeSeriesSerializer,
+)
 
 
 class NoModelView(PandasSimpleView):

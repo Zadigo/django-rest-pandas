@@ -3,25 +3,25 @@ from rest_framework.routers import DefaultRouter
 from rest_framework.urlpatterns import format_suffix_patterns
 
 from .views import (
-    NoModelView,
+    ComplexBoxplotExtraView,
+    ComplexBoxplotView,
+    ComplexScatterView,
+    ComplexTimeSeriesView,
+    CustomIndexSeriesView,
+    DjangoPandasView,
     FromFileView,
-    TimeSeriesView,
-    TimeSeriesNoIdView,
+    MultiBoxplotView,
+    MultiScatterView,
+    MultiTimeSeriesView,
+    NoModelView,
+    TimeSeriesCustomCSVView,
     TimeSeriesLabelsView,
     TimeSeriesMixedRendererView,
-    TimeSeriesCustomCSVView,
     TimeSeriesMixinView,
+    TimeSeriesNoIdView,
     TimeSeriesNoMixinView,
-    DjangoPandasView,
+    TimeSeriesView,
     TimeSeriesViewSet,
-    MultiTimeSeriesView,
-    MultiScatterView,
-    MultiBoxplotView,
-    ComplexTimeSeriesView,
-    ComplexScatterView,
-    ComplexBoxplotView,
-    ComplexBoxplotExtraView,
-    CustomIndexSeriesView,
 )
 
 router = DefaultRouter()
