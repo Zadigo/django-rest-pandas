@@ -14,8 +14,8 @@
         ".",
         "-v",
         "--cov=.",
-        "--cov-report=markdown:shopapi-coverage.md",
-        "--cov-report=html:shopapi-coverage",
+        "--cov-report=markdown:django_rest_pandas-coverage.md",
+        "--cov-report=html:django_rest_pandas-coverage",
         "--report-log=reports/reports.json",
         "-s",
     ]

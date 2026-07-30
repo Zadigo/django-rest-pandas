@@ -84,3 +84,20 @@ Source = "https://github.com/wq/django-rest-pandas"
 "Release Notes" = "https://django-rest-pandas.wq.io/releases/"
 Issues = "https://github.com/wq/django-rest-pandas/issues"
 CI = "https://github.com/wq/django-rest-pandas/actions/workflows/test.yml"
+
+[tool.coverage.run]
+omit = [
+    "manage.py",
+    "*/migrations/*",
+    "*/__init__.py",
+    "*/typings.py"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]

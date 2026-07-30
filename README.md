@@ -4,17 +4,14 @@
   </a>
 </p>
 
-#### [Django REST Framework] + [pandas] = A Model-driven Visualization API
-
-**Django REST Pandas** (DRP) provides a simple way to generate and serve [pandas] DataFrames via the [Django REST Framework].  The resulting API can serve up CSV (and a number of [other formats][renderers] for consumption by a client-side visualization tool like [@wq/analyst].
+**Django REST Pandas** (DRP) provides a simple way to generate and serve [pandas] DataFrames via the [Django REST Framework].  The resulting API can serve up CSV (and a number of [other formats][renderers]) for consumption by a client-side visualization tool like [@wq/analyst].
 
 The design philosophy of DRP enforces a strict separation between data and presentation.  This keeps the implementation simple, but also has the nice side effect of making it trivial to provide the source data for your visualizations.  This capability can often be leveraged by sending users to the same URL that your visualization code uses internally to load the data.
 
 While DRP is primarily a data API, it also provides a default collection of interactive visualizations through the [@wq/chart] library, and a [@wq/pandas] loader to facilitate custom JavaScript charts that work well with CSV output served by DRP.  These can be used to create interactive time series, scatter, and box plot charts - as well as any of the other charting possibilities Plotly provides.
 
 [![Latest PyPI Release](https://img.shields.io/pypi/v/rest-pandas.svg)](https://pypi.python.org/pypi/rest-pandas)
-[![Release Notes](https://img.shields.io/github/release/wq/django-rest-pandas.svg
-    )](https://github.com/wq/django-rest-pandas/releases)
+[![Release Notes](https://img.shields.io/github/release/wq/django-rest-pandas.svg)](https://github.com/wq/django-rest-pandas/releases)
 [![License](https://img.shields.io/pypi/l/rest-pandas.svg)](https://github.com/wq/django-rest-pandas/blob/master/LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/wq/django-rest-pandas.svg)](https://github.com/wq/django-rest-pandas/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/wq/django-rest-pandas.svg)](https://github.com/wq/django-rest-pandas/network)
