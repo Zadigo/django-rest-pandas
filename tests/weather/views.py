@@ -1,4 +1,4 @@
-from rest_pandas import PandasView, PandasUnstackedSerializer
+from src import PandasView, PandasUnstackedSerializer
 from .models import Weather
 from .serializers import WeatherSerializer
 

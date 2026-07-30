@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
-from rest_pandas import PandasUnstackedSerializer
+from src import PandasUnstackedSerializer
 from .models import (
     TimeSeries,
     TimeSeriesLabels,

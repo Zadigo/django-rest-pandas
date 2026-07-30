@@ -1,7 +1,7 @@
-import pathlib
 import hashlib
+import pathlib
 import subprocess
-import shutil
+
 from setuptools_scm import get_version
 
 root = pathlib.Path(__file__).parent.parent

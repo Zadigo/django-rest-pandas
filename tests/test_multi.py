@@ -2,7 +2,7 @@ import unittest
 from rest_framework.test import APITestCase
 from tests.testapp.models import MultiTimeSeries
 from tests.testapp.serializers import NotUnstackableSerializer
-from rest_pandas.test import parse_csv
+from src.test import parse_csv
 from django.core.exceptions import ImproperlyConfigured
 import os
 from .settings import HAS_MATPLOTLIB, HAS_DJANGO_5

@@ -1,5 +1,6 @@
 import csv
-from .renderers import StringIO
+
+from src.renderers import StringIO
 
 
 def parse_csv(string):
@@ -19,9 +20,11 @@ def parse_csv(string):
         return [{"data": data}]
 
     reader = csv.reader(StringIO(string))
+
     val_cols = None
     val_start = None
     id_cols = None
+
     for row in reader:
         if row[0] == "" and not val_cols:
             val_start = row.count("")
@@ -66,4 +69,5 @@ def parse_csv(string):
                     records[mi] = data
             for mi, data in records.items():
                 datasets[mi]["data"].append(data)
+
     return datasets

@@ -1,4 +1,4 @@
-from rest_pandas import (
+from src import (
     PandasMixin,
     PandasSimpleView,
     PandasView,
@@ -9,7 +9,7 @@ from rest_pandas import (
 )
 from rest_framework import renderers
 from rest_framework.generics import ListAPIView
-from rest_pandas import renderers as pandas_renderers
+from src import renderers as pandas_renderers
 from .models import (
     TimeSeries,
     TimeSeriesLabels,

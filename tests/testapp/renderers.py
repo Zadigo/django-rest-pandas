@@ -1,4 +1,4 @@
-from rest_pandas.renderers import PandasCSVRenderer
+from src.renderers import PandasCSVRenderer
 
 
 class CustomCSVRenderer(PandasCSVRenderer):

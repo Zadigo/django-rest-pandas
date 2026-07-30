@@ -1,8 +1,5 @@
-from setuptools.build_meta import *
-import warnings
-
 import builder
-
+from setuptools.build_meta import *
 
 default_build_wheel = build_wheel
 

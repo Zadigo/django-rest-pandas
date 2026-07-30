@@ -1,7 +1,7 @@
 import unittest
 from rest_framework.test import APITestCase
 from tests.testapp.models import ComplexTimeSeries
-from rest_pandas.test import parse_csv
+from src.test import parse_csv
 from .settings import HAS_MATPLOTLIB
 
 

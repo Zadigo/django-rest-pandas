@@ -1,11 +1,16 @@
-from rest_framework import serializers
+from collections import OrderedDict
+from typing import Any
+
+from django.core.exceptions import ImproperlyConfigured
+from django.db.models import Model
+from django.utils import timezone
+from django.utils.functional import cached_property
+from matplotlib.cbook import boxplot_stats
 from pandas import DataFrame
 from pandas.api.types import is_numeric_dtype
-from django.core.exceptions import ImproperlyConfigured
-from django.utils.functional import cached_property
-import datetime
-from collections import OrderedDict
-from . import settings
+from rest_framework import serializers
+
+from src import settings
 
 
 def get_label(field, name):
@@ -22,13 +27,10 @@ class PandasSerializer(serializers.ListSerializer):
     Transforms dataset into a dataframe and applies an index
     """
 
-    read_only = True
+    read_only: bool = True
     apply_field_labels = settings.APPLY_FIELD_LABELS
     index_none_value = settings.INDEX_NONE_VALUE
     wq_chart_type = None
-
-    def get_index(self, dataframe):
-        return self.get_index_fields()
 
     @cached_property
     def field_labels(self):
@@ -37,46 +39,16 @@ class PandasSerializer(serializers.ListSerializer):
             for name, field in self.child.get_fields().items()
         }
 
-    def get_dataframe(self, data):
-        dataframe = DataFrame(data)
-        if self.apply_field_labels:
-            dataframe.rename(columns=self.field_labels, inplace=True)
-        index = self.get_index(dataframe)
-        if index:
-            if self.index_none_value is not None:
-                for key in index:
-                    try:
-                        dataframe[key].fillna(
-                            self.index_none_value, inplace=True
-                        )
-                    except ValueError:
-                        pass
-            dataframe.set_index(index, inplace=True)
-        else:
-            # Name auto-index column to ensure valid CSV output
-            dataframe.index.name = "row"
-        return dataframe
-
-    def transform_dataframe(self, dataframe):
-        view = self.context.get("view", None)
-        if view and hasattr(view, "transform_dataframe"):
-            return self.context["view"].transform_dataframe(dataframe)
-        return dataframe
-
     @property
     def data(self):
-        data = super(serializers.ListSerializer, self).data
+        data = super().data
+
         if isinstance(data, DataFrame) or data:
             dataframe = self.get_dataframe(data)
             return self.transform_dataframe(dataframe)
         else:
             return DataFrame([])
-
-    def to_representation(self, data):
-        if isinstance(data, DataFrame):
-            return data
-        return super().to_representation(data)
-
+        
     @property
     def model_serializer(self):
         serializer = type(self.child)
@@ -88,16 +60,53 @@ class PandasSerializer(serializers.ListSerializer):
     def model_serializer_meta(self):
         return getattr(self.model_serializer, "Meta", object())
 
+    def get_index(self, dataframe: DataFrame) -> list[str]:
+        return self.get_index_fields()
+
+
+    def get_dataframe(self, data: list[dict]) -> DataFrame:
+        dataframe = DataFrame(data)
+
+        if self.apply_field_labels:
+            dataframe.rename(columns=self.field_labels, inplace=True)
+
+        index = self.get_index(dataframe)
+        if index:
+            if self.index_none_value is not None:
+                for key in index:
+                    try:
+                        dataframe[key].fillna(self.index_none_value, inplace=True)
+                    except ValueError:
+                        pass
+            dataframe.set_index(index, inplace=True)
+        else:
+            # Name auto-index column to ensure valid CSV output
+            dataframe.index.name = "row"
+
+        return dataframe
+
+    def transform_dataframe(self, dataframe: DataFrame) -> DataFrame:
+        view = self.context.get("view", None)
+        if view and hasattr(view, 'transform_dataframe'):
+            return self.context["view"].transform_dataframe(dataframe)
+        return dataframe
+
+    def to_representation(self, data: DataFrame | list[dict]) -> DataFrame | list[dict]:
+        if isinstance(data, DataFrame):
+            return data
+        return super().to_representation(data)
+
+
     def get_index_fields(self):
         """
         List of fields to use for index
         """
-        index_fields = self.get_meta_option("index", [], True)
+        index_fields = self.get_meta_option('index', [], True)
         if index_fields:
             return index_fields
 
-        model = getattr(self.model_serializer_meta, "model", None)
-        if model:
+        model: Model | None = getattr(self.model_serializer_meta, 'model', None)
+        if model is not None:
             pk_name = model._meta.pk.name
             if pk_name in self.child.get_fields():
                 if self.apply_field_labels:
@@ -106,18 +115,15 @@ class PandasSerializer(serializers.ListSerializer):
 
         return []
 
-    def get_meta_option(self, name, default=None, apply_field_labels=False):
-        meta_name = "pandas_" + name
+    def get_meta_option(self, name: str, default: Any | None=None, apply_field_labels: bool=False) -> Any:
+        meta_name = 'pandas_' + name
         value = getattr(self.model_serializer_meta, meta_name, None)
 
         if value is None:
             if default is not None:
                 return default
             else:
-                raise ImproperlyConfigured(
-                    "%s should be specified on %s.Meta"
-                    % (meta_name, self.model_serializer.__name__)
-                )
+                raise ImproperlyConfigured(f"{meta_name} should be specified on {self.model_serializer.__name__}.Meta")
         elif apply_field_labels and self.apply_field_labels:
             return [self.field_labels.get(field, field) for field in value]
         else:
@@ -126,22 +132,20 @@ class PandasSerializer(serializers.ListSerializer):
 
 class PandasUnstackedSerializer(PandasSerializer):
     """
-    Pivots dataframe so commonly-repeating values are across the top in a
-    multi-row header.  Intended for use with e.g. time series data, where the
-    header includes metadata applicable to each time series.
+    Pivots dataframe into a format suitable for plotting multiple series against a single x-axis.
     (Use with wq/chart.js' timeSeries() function)
     """
 
     index_none_value = "-"
     wq_chart_type = "timeSeries"
 
-    def get_index(self, dataframe):
+    def get_index(self, dataframe: DataFrame) -> list[str]:
         """
         Include header fields in initial index for later unstacking
         """
         return self.get_index_fields() + self.get_header_fields()
 
-    def transform_dataframe(self, dataframe):
+    def transform_dataframe(self, dataframe: DataFrame) -> DataFrame:
         """
         Unstack the dataframe so header fields are across the top.
         """
@@ -173,7 +177,7 @@ class PandasScatterSerializer(PandasSerializer):
     index_none_value = "-"
     wq_chart_type = "scatter"
 
-    def get_index(self, dataframe):
+    def get_index(self, dataframe: DataFrame) -> list[str]:
         """
         Include scatter & header fields in initial index for later unstacking
         """
@@ -183,7 +187,7 @@ class PandasScatterSerializer(PandasSerializer):
             + self.get_coord_fields()
         )
 
-    def transform_dataframe(self, dataframe):
+    def transform_dataframe(self, dataframe: DataFrame) -> DataFrame:
         """
         Unstack the dataframe so header consists of a composite 'value' header
         plus any other header fields.
@@ -194,6 +198,7 @@ class PandasScatterSerializer(PandasSerializer):
         # Remove any pairs that don't have data for both x & y
         for i in range(len(coord_fields)):
             dataframe = dataframe.unstack()
+
         dataframe = dataframe.dropna(axis=1, how="all")
         dataframe = dataframe.dropna(axis=0, how="any")
 
@@ -208,12 +213,15 @@ class PandasScatterSerializer(PandasSerializer):
 
         for col in dataframe.columns:
             value_name = col[0]
+
             coord_names = list(col[1 : len(coord_fields) + 1])
             header_names = list(col[len(coord_fields) + 1 :])
+
             coord_name = ""
             for name in coord_names:
                 if name != self.index_none_value:
                     coord_name += name + "-"
+
             coord_name += value_name
             columns[0].append(coord_name)
             for i, header_name in enumerate(header_names):
@@ -229,13 +237,13 @@ class PandasScatterSerializer(PandasSerializer):
         Fields that will be collapsed into a single header with the name of
         each coordinate.
         """
-        return self.get_meta_option("scatter_coord", None, True)
+        return self.get_meta_option('scatter_coord', None, True)
 
     def get_header_fields(self):
         """
         Other header fields, if any
         """
-        return self.get_meta_option("scatter_header", [], True)
+        return self.get_meta_option('scatter_header', [], True)
 
 
 class PandasBoxplotSerializer(PandasSerializer):
@@ -248,7 +256,7 @@ class PandasBoxplotSerializer(PandasSerializer):
     index_none_value = "-"
     wq_chart_type = "boxplot"
 
-    def get_index(self, dataframe):
+    def get_index(self, dataframe: DataFrame) -> list[str]:
         group_field = self.get_group_field()
         date_field = self.get_date_field()
         header_fields = self.get_header_fields()
@@ -257,12 +265,14 @@ class PandasBoxplotSerializer(PandasSerializer):
         index = []
         if date_field:
             index.append(date_field)
+
         index += extra_index_fields
         index.append(group_field)
         index += header_fields
+
         return index
 
-    def transform_dataframe(self, dataframe):
+    def transform_dataframe(self, dataframe: DataFrame) -> DataFrame:
         """
         Use matplotlib to compute boxplot statistics on e.g. timeseries data.
         """
@@ -299,9 +309,11 @@ class PandasBoxplotSerializer(PandasSerializer):
                 else:
                     value_name = header
                     col_values = []
+
                 col_names = tuple(zip(dataframe.columns.names[1:], col_values))
                 if interval in series_stat:
                     col_names += ((interval, series_stat[interval]),)
+
                 series_infos.setdefault(col_names, dict(col_names))
                 series_info = series_infos[col_names]
                 for stat_name, val in series_stat.items():
@@ -328,7 +340,7 @@ class PandasBoxplotSerializer(PandasSerializer):
         dataframe = dataframe.dropna(axis=1, how="all")
         return dataframe
 
-    def get_grouping(self, dataframe):
+    def get_grouping(self, dataframe: DataFrame) -> str:
         request = self.context.get("request", None)
         datasets = len(dataframe.columns)
         if request:
@@ -341,8 +353,11 @@ class PandasBoxplotSerializer(PandasSerializer):
         def get_interval_name(date):
             if isinstance(date, tuple):
                 date = date[0]
+
             if hasattr(date, "count") and date.count("-") == 2:
-                date = datetime.datetime.strptime(date, "%Y-%m-%d")
+                # date = datetime.datetime.strptime(date, "%Y-%m-%d")
+                date = timezone.datetime.strptime(date, "%Y-%m-%d")
+
             return getattr(date, interval)
 
         interval_stats = []
@@ -351,22 +366,23 @@ class PandasBoxplotSerializer(PandasSerializer):
             stats = self.compute_boxplot(series[group])
             stats[interval] = interval_name
             interval_stats.append(stats)
+
         return interval_stats
 
     def compute_boxplot(self, series):
         """
         Compute boxplot for given pandas Series.
         """
-        from matplotlib.cbook import boxplot_stats
-
         series = series[series.notnull()]
         if len(series.values) == 0:
             return {}
         elif not is_numeric_dtype(series):
             return self.non_numeric_stats(series)
+        
         stats = boxplot_stats(list(series.values))[0]
         stats["count"] = len(series.values)
         stats["fliers"] = "|".join(map(str, stats["fliers"]))
+
         return stats
 
     def non_numeric_stats(self, series):

@@ -1,4 +1,6 @@
-from .renderers import PandasBaseRenderer
+from django.http import HttpRequest
+
+from src.typings import TypePandasBaseRenderer, TypeRenderers
 
 try:
     from rest_framework.views import APIView
@@ -11,22 +13,20 @@ except ImportError as e:
         raise
 from rest_framework.generics import ListAPIView
 from rest_framework.mixins import ListModelMixin
-from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
-
-from . import settings
 from rest_framework.settings import perform_import
+from rest_framework.viewsets import GenericViewSet
 
-from .serializers import SimpleSerializer, PandasSerializer
+from src import settings
+from src.serializers import PandasSerializer, SimpleSerializer
 
-
-PANDAS_RENDERERS = perform_import(
+PANDAS_RENDERERS: TypeRenderers = perform_import(
     settings.RENDERERS, 'REST_PANDAS["RENDERERS"]'
 )
 
 
-class PandasMixin(object):
-    pandas_serializer_class = PandasSerializer
+class PandasMixin[T = PandasSerializer]:
+    pandas_serializer_class: type[T] = PandasSerializer
 
     def with_list_serializer(self, cls):
         meta = getattr(cls, "Meta", object)
@@ -39,30 +39,33 @@ class PandasMixin(object):
 
         return SerializerWithListSerializer
 
-    def get_serializer_class(self):
-
+    def get_serializer_class(self) -> type[PandasSerializer]:
         # c.f rest_framework.generics.GenericAPIView
         # (not using super() since this is a mixin class)
-        assert self.serializer_class is not None, (
-            "'%s' should either include a `serializer_class` attribute, "
-            "or override the `get_serializer_class()` method."
-            % self.__class__.__name__
-        )
+        # assert self.serializer_class is not None, (
+        #     f"'{self.__class__.__name__}' should either include a `serializer_class` attribute, "
+        #     "or override the `get_serializer_class()` method."
+        # )
+        if getattr(self, "serializer_class", None) is None:
+            raise ValueError(
+                f"'{self.__class__.__name__}' should either include a `serializer_class` attribute, "
+                "or override the `get_serializer_class()` method."
+            )
 
         renderer = self.request.accepted_renderer
         if hasattr(renderer, "get_default_renderer"):
             # BrowsableAPIRenderer
             renderer = renderer.get_default_renderer(self)
 
-        if isinstance(renderer, PandasBaseRenderer):
+        if isinstance(renderer, TypePandasBaseRenderer):
             return self.with_list_serializer(self.serializer_class)
         else:
             return self.serializer_class
 
-    def get_pandas_filename(self, request, format):
+    def get_pandas_filename(self, request: HttpRequest, format: str) -> str | None:
         return None
 
-    def get_pandas_headers(self, request):
+    def get_pandas_headers(self, request: HttpRequest) -> dict[str, str]:
         format = request.accepted_renderer.format
         filename = self.get_pandas_filename(request, format)
         if not filename:
@@ -73,10 +76,10 @@ class PandasMixin(object):
             filename += extension
 
         return {
-            "Content-Disposition": 'attachment; filename="{}"'.format(filename)
+            "Content-Disposition": f'attachment; filename="{filename}"'
         }
 
-    def update_pandas_headers(self, response):
+    def update_pandas_headers(self, response: Response) -> Response:
         headers = self.get_pandas_headers(self.request)
         for key, val in headers.items():
             response[key] = val
@@ -86,7 +89,7 @@ class PandasMixin(object):
 class PandasViewBase(PandasMixin):
     renderer_classes = PANDAS_RENDERERS
     pagination_class = None
-    template_name = "rest_pandas/viewer.html"
+    template_name = 'rest_pandas/viewer.html'
 
 
 class PandasSimpleView(PandasViewBase, APIView):
@@ -95,15 +98,17 @@ class PandasSimpleView(PandasViewBase, APIView):
     with a function that returns a list of dicts.
     """
 
-    serializer_class = SimpleSerializer
+    serializer_class: type[PandasSerializer] = SimpleSerializer
 
-    def get_data(self, request, *args, **kwargs):
+    def get_data(self, request: HttpRequest, *args, **kwargs):
         return []
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args, **kwargs):
         data = self.get_data(request, *args, **kwargs)
+
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data, many=True)
+
         response = Response(serializer.data)
         return self.update_pandas_headers(response)
 
@@ -113,7 +118,7 @@ class PandasView(PandasViewBase, ListAPIView):
     Pandas-capable model list view
     """
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request: HttpRequest, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         return self.update_pandas_headers(response)
 
@@ -123,6 +128,6 @@ class PandasViewSet(PandasViewBase, ListModelMixin, GenericViewSet):
     Pandas-capable model ViewSet (list only)
     """
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request: HttpRequest, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
         return self.update_pandas_headers(response)
