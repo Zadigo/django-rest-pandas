@@ -30,9 +30,9 @@ class ExcelTestCase(APITestCase):
             'attachment; filename="Time Series.xls"',
             response["content-disposition"],
         )
-        xlfile = open("tests/output.xls", "wb")
-        xlfile.write(response.content)
-        xlfile.close()
+        with open("tests/output.xls", "wb") as xlfile:
+            xlfile.write(response.content)
+            xlfile.close()
 
         data = load_file("tests/output.xls")
         self.assertEqual(len(data), 5)
@@ -45,9 +45,9 @@ class ExcelTestCase(APITestCase):
             'attachment; filename="Time Series.xlsx"',
             response["content-disposition"],
         )
-        xlfile = open("tests/output.xlsx", "wb")
-        xlfile.write(response.content)
-        xlfile.close()
+        with open("tests/output.xlsx", "wb") as xlfile:
+            xlfile.write(response.content)
+            xlfile.close()
 
         data = load_file("tests/output.xlsx")
         self.assertEqual(len(data), 5)

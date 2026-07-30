@@ -27,5 +27,6 @@ def pytest_configure(config):
                 'django.contrib.humanize',
                 'tests.testapp',
                 'tests.weather',
-            ]
+            ],
+            ROOT_URLCONF='tests.urls'
         )

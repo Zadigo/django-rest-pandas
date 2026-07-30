@@ -1,4 +1,5 @@
 import os
+from collections.abc import Callable
 from io import BytesIO, StringIO
 from tempfile import mkstemp
 from typing import Any, ClassVar
@@ -22,7 +23,7 @@ class PandasBaseRenderer(BaseRenderer):
     Uses a StringIO to capture the output of dataframe.to_[format]()
     """
 
-    def render(self, data: dict, accepted_media_type=None, renderer_context: dict[str, Any] | None = None) -> str:
+    def render(self, data: DataFrame, accepted_media_type: str | None=None, renderer_context: dict[str, Any] | None = None) -> str:
         if renderer_context and "response" in renderer_context:
             status_code = renderer_context["response"].status_code
             if not status.is_success(status_code):
@@ -43,9 +44,10 @@ class PandasBaseRenderer(BaseRenderer):
         self.render_dataframe(data, name, *args, **kwargs)
         return self.get_output()
 
-    def render_dataframe(self, data: DataFrame, name: str, *args, **kwargs):
-        function = getattr(data, name)
-        function(*args, **kwargs)
+    def render_dataframe(self, data: DataFrame, func_name: str, *args, **kwargs):
+        """Renders the dataframe using a pandas function, e.g. to_csv, to_json, etc."""
+        func: Callable[..., Any] = getattr(data, func_name)
+        func(*args, **kwargs)
 
     def init_output(self) -> None:
         self.output = StringIO()
@@ -81,24 +83,13 @@ class PandasFileRenderer(PandasBaseRenderer):
             return result
 
 
-class PandasHTMLRenderer(TemplateHTMLRenderer, PandasBaseRenderer):
+class PandasHTMLRenderer(PandasBaseRenderer, TemplateHTMLRenderer):
     media_type: str = 'text/html'
     format: str = 'html'
 
-    def render(self, data, accepted_media_type=None, renderer_context: dict[str, Any] | None = None):
-        table = super().render(
-            self,
-            data,
-            accepted_media_type,
-            renderer_context,
-        )
-
-        return TemplateHTMLRenderer.render(
-            self,
-            {'table': table},
-            accepted_media_type,
-            renderer_context,
-        )
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        table = super().render(data, accepted_media_type=accepted_media_type, renderer_context=renderer_context)
+        return TemplateHTMLRenderer.render(self, {'table': table}, accepted_media_type=accepted_media_type, renderer_context=renderer_context)
 
     def get_template_context(self, data, renderer_context: dict[str, Any]):
         view = renderer_context["view"]

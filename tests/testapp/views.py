@@ -35,6 +35,8 @@ from .serializers import (
 
 
 class NoModelView(PandasSimpleView):
+    """A simple view that does not use a model or serializer."""
+    
     def get_data(self, request, *args, **kwargs):
         return [
             {"x": 5, "y": 7},
@@ -45,6 +47,8 @@ class NoModelView(PandasSimpleView):
 
 
 class FromFileView(PandasSimpleView):
+    """A simple view that reads data from a CSV file."""
+
     def get_data(self, request, *args, **kwargs):
         return pd.read_csv("tests/data.csv")
 
@@ -81,20 +85,20 @@ class TimeSeriesMixedRendererView(PandasView):
     queryset = TimeSeries.objects.all()
     serializer_class = TimeSeriesSerializer
 
-    renderer_classes = [
+    renderer_classes = (
         renderers.BrowsableAPIRenderer,
-        pandas_renderers.PandasCSVRenderer,
+        pandas_renderers.PandasCsvRenderer,
         renderers.JSONRenderer,
-    ]
+    )
 
 
 class TimeSeriesCustomCSVView(PandasView):
     queryset = TimeSeries.objects.all()
     serializer_class = TimeSeriesSerializer
 
-    renderer_classes = [
+    renderer_classes: tuple = (
         CustomCSVRenderer,
-    ]
+    )
 
     def transform_dataframe(self, df):
         df["date"] = df["date"].astype("datetime64[ns]")
@@ -109,20 +113,20 @@ class TimeSeriesViewSet(PandasViewSet):
 class TimeSeriesMixinView(PandasMixin, ListAPIView):
     queryset = TimeSeries.objects.all()
     serializer_class = TimeSeriesSerializer
-    renderer_classes = [pandas_renderers.PandasCSVRenderer]
+    renderer_classes = (pandas_renderers.PandasCsvRenderer,)
 
 
 class TimeSeriesNoMixinView(ListAPIView):
     queryset = TimeSeries.objects.all()
     serializer_class = TimeSeriesSerializer
-    renderer_classes = [pandas_renderers.PandasCSVRenderer]
+    renderer_classes = (pandas_renderers.PandasCsvRenderer,)
 
 
 class DjangoPandasView(PandasSimpleView):
+    """A simple Django Pandas view."""
+    
     def get_data(self, request, *args, **kwargs):
-        return TimeSeries.objects.to_timeseries(
-            index="date",
-        )
+        return TimeSeries.objects.to_timeseries(index="date")
 
 
 class MultiTimeSeriesView(PandasView):

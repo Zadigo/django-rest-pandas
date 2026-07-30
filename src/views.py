@@ -1,6 +1,9 @@
+
+
 from django.http import HttpRequest
 
-from src.typings import TypePandasBaseRenderer, TypeRenderers
+from src.renderers import PandasBaseRenderer
+from src.typings import TypeRenderers
 
 try:
     from rest_framework.views import APIView
@@ -13,6 +16,7 @@ except ImportError as e:
         raise
 from rest_framework.generics import ListAPIView
 from rest_framework.mixins import ListModelMixin
+from rest_framework.pagination import BasePagination
 from rest_framework.response import Response
 from rest_framework.settings import perform_import
 from rest_framework.viewsets import GenericViewSet
@@ -20,16 +24,14 @@ from rest_framework.viewsets import GenericViewSet
 from src import settings
 from src.serializers import PandasSerializer, SimpleSerializer
 
-PANDAS_RENDERERS: TypeRenderers = perform_import(
-    settings.RENDERERS, 'REST_PANDAS["RENDERERS"]'
-)
+PANDAS_RENDERERS: TypeRenderers = perform_import(settings.RENDERERS, 'REST_PANDAS["RENDERERS"]')
 
 
 class PandasMixin[T = PandasSerializer]:
     pandas_serializer_class: type[T] = PandasSerializer
 
-    def with_list_serializer(self, cls):
-        meta = getattr(cls, "Meta", object)
+    def with_list_serializer(self, cls: T):
+        meta: type = getattr(cls, "Meta", object)
         if getattr(meta, "list_serializer_class", None):
             return cls
 
@@ -40,12 +42,6 @@ class PandasMixin[T = PandasSerializer]:
         return SerializerWithListSerializer
 
     def get_serializer_class(self) -> type[PandasSerializer]:
-        # c.f rest_framework.generics.GenericAPIView
-        # (not using super() since this is a mixin class)
-        # assert self.serializer_class is not None, (
-        #     f"'{self.__class__.__name__}' should either include a `serializer_class` attribute, "
-        #     "or override the `get_serializer_class()` method."
-        # )
         if getattr(self, "serializer_class", None) is None:
             raise ValueError(
                 f"'{self.__class__.__name__}' should either include a `serializer_class` attribute, "
@@ -57,7 +53,7 @@ class PandasMixin[T = PandasSerializer]:
             # BrowsableAPIRenderer
             renderer = renderer.get_default_renderer(self)
 
-        if isinstance(renderer, TypePandasBaseRenderer):
+        if isinstance(renderer, PandasBaseRenderer):
             return self.with_list_serializer(self.serializer_class)
         else:
             return self.serializer_class
@@ -88,8 +84,8 @@ class PandasMixin[T = PandasSerializer]:
 
 class PandasViewBase(PandasMixin):
     renderer_classes = PANDAS_RENDERERS
-    pagination_class = None
-    template_name = 'rest_pandas/viewer.html'
+    pagination_class: type[BasePagination] | None = None
+    template_name: str = 'src/viewer.html'
 
 
 class PandasSimpleView(PandasViewBase, APIView):
