@@ -1,14 +1,11 @@
 import datetime
 import json
 import os
-import unittest
 
 from itertable import load_string
 from rest_framework.test import APITestCase
 
 from tests.testapp.models import CustomIndexSeries, TimeSeries
-
-from .settings import HAS_DJANGO_5, HAS_DJANGO_PANDAS
 
 
 class PandasTestCase(APITestCase):
@@ -50,7 +47,6 @@ class PandasTestCase(APITestCase):
             list(data.field_map.keys()), ["id", "Event Date", "Measured Value"]
         )
 
-    @unittest.skipUnless(HAS_DJANGO_PANDAS, "requires django-pandas")
     def test_view_django_pandas(self):
         response = self.client.get("/djangopandas.csv")
         data = self.load_string(response)
@@ -69,25 +65,26 @@ class PandasTestCase(APITestCase):
 
     def test_view_json_kwargs(self):
         response = self.client.get("/timeseries.json?date_format=epoch")
+
         self.assertEqual(response.accepted_media_type, "application/json")
         data = json.loads(response.content.decode("utf-8"))
+
         self.assertEqual(len(data), 5)
         self.assertEqual(data[0]["value"], 0.5)
-        date = datetime.datetime.utcfromtimestamp(data[0]["date"] / 1000)
-        self.assertEqual(date, datetime.datetime(2014, 1, 1))
+
+        date = datetime.datetime.fromtimestamp(data[0]["date"] / 1000, tz=datetime.UTC)
+        self.assertEqual(date, datetime.datetime(2014, 1, 1, tzinfo=datetime.UTC))
 
         response = self.client.get("/timeseries.json?orient=index")
         data = json.loads(response.content.decode("utf-8"))
         self.assertEqual(len(data.values()), 5)
         self.assertEqual(data["1"]["value"], 0.5)
 
-    @unittest.skipUnless(HAS_DJANGO_5, "requires django 5")
     def test_view_html(self):
         response = self.client.get("/timeseries?test=1")
-        expected = open(
-            os.path.join(os.path.dirname(__file__), "files", "timeseries.html")
-        ).read()
-        self.assertHTMLEqual(expected, response.content.decode("utf-8"))
+        with open(os.path.join(os.path.dirname(__file__), "files", "timeseries.html")) as f:
+            expected = f.read()
+            self.assertHTMLEqual(expected, response.content.decode("utf-8"))
 
     def test_viewset(self):
         response = self.client.get("/router/timeseries.csv")

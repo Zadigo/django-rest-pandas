@@ -15,7 +15,7 @@
 | tests/test\_excel.py          |       34 |       21 |     38% |
 | tests/test\_images.py         |       18 |        9 |     50% |
 | tests/test\_multi.py          |      105 |       88 |     16% |
-| tests/test\_views.py          |      126 |       94 |     25% |
+| tests/test\_views.py          |      123 |       95 |     23% |
 | tests/testapp/\_\_init\_\_.py |        0 |        0 |    100% |
 | tests/testapp/models.py       |       30 |        2 |     93% |
 | tests/testapp/renderers.py    |        6 |        6 |      0% |
@@ -24,4 +24,4 @@
 | tests/testapp/views.py        |       85 |       85 |      0% |
 | tests/urls.py                 |        3 |        3 |      0% |
 | tests/weather/models.py       |       25 |        9 |     64% |
-| **TOTAL**                     | **1259** |  **873** | **31%** |
+| **TOTAL**                     | **1256** |  **874** | **30%** |
