@@ -1,5 +1,3 @@
-
-
 from django.http import HttpRequest
 
 from src.renderers import PandasBaseRenderer
@@ -99,7 +97,7 @@ class PandasSimpleView(PandasViewBase, APIView):
     def get_data(self, request: HttpRequest, *args, **kwargs):
         return []
 
-    def get(self, request: HttpRequest, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         data = self.get_data(request, *args, **kwargs)
 
         serializer_class = self.get_serializer_class()
